@@ -50,3 +50,8 @@ $('#contactOpen').addEventListener('click',()=>info('Hablemos', '<p>Esta tienda 
 $('#privacyOpen').addEventListener('click',()=>info('Privacidad de la demo','<p>La bolsa y los favoritos se guardan en el almacenamiento local de este navegador. No recopilamos datos personales ni usamos herramientas de analítica en esta demostración.</p><p>El sitio solicita tipografías a Google Fonts, que puede recibir datos técnicos de conexión. Si el servicio no está disponible se utiliza una fuente del sistema.</p><p>Podés borrar la bolsa y los favoritos desde la configuración de datos del navegador.</p>'));
 document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();}}));
 $('#year').textContent=new Date().getFullYear();render();updateCart();
+
+// The new header sections have explicit empty states until their content is supplied.
+const navPanelMessages={marcas:'Todavía no hay marcas disponibles en esta sección.',liquidos:'Todavía no hay líquidos para aromatización de ambientes disponibles en esta sección.',equipos:'Todavía no hay equipos de aromatización disponibles en esta sección.'};
+document.querySelectorAll('[data-nav-panel]').forEach(button=>button.addEventListener('click',()=>info(button.textContent.trim(),'<p>'+navPanelMessages[button.dataset.navPanel]+'</p>')));
+$('#navCatalog').addEventListener('click',()=>{$('#search').value='';setFilter('Todos');});
