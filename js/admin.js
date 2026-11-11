@@ -164,7 +164,7 @@ function renderProductsTable(filterText = "", filterCategory = "all") {
                     onerror="this.src='https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=600&q=80'">
                 <div>
                     <h4 class="font-bold text-white text-sm line-clamp-1">${prod.name}</h4>
-                    <span class="text-xs text-purple-400 font-medium">${prod.brand || 'VaporAle'}</span>
+                    <span class="text-xs text-cyan-400 font-medium">${prod.brand || 'VaporAle'}</span>
                 </div>
             </td>
 
@@ -203,7 +203,7 @@ function renderProductsTable(filterText = "", filterCategory = "all") {
             <td class="px-6 py-4 text-right space-x-2">
                 <button 
                     onclick="openEditProductModal('${prod.id}')"
-                    class="text-gray-400 hover:text-purple-400 p-2 transition" 
+                    class="text-gray-400 hover:text-cyan-400 p-2 transition" 
                     title="Editar producto">
                     <i class="fas fa-edit"></i>
                 </button>
@@ -350,9 +350,9 @@ function renderCategoriesList() {
     if (!container) return;
 
     container.innerHTML = adminCategories.map(cat => `
-        <div class="flex items-center justify-between p-4 bg-gray-900 border border-gray-800 rounded-xl">
+        <div class="flex items-center justify-between p-4 bg-slate-900 border border-cyan-500/20 rounded-xl">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                <div class="w-10 h-10 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
                     <i class="fas ${cat.icon || 'fa-tag'}"></i>
                 </div>
                 <div>
@@ -363,7 +363,7 @@ function renderCategoriesList() {
             <div class="flex items-center gap-2">
                 <button 
                     onclick="openEditCategoryModal('${cat.id}')"
-                    class="text-gray-400 hover:text-purple-400 p-2 text-sm transition"
+                    class="text-gray-400 hover:text-cyan-400 p-2 text-sm transition"
                     title="Editar categoría">
                     <i class="fas fa-edit"></i>
                 </button>
@@ -556,9 +556,9 @@ function switchTab(tabId) {
         }
         if (btn) {
             if (t === tabId) {
-                btn.className = "tab-btn active px-4 py-2.5 font-bold text-sm text-white bg-purple-600 rounded-xl shadow-lg shadow-purple-600/30 flex items-center gap-2";
+                btn.className = "tab-btn active px-4 py-2.5 font-black text-sm text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 rounded-xl shadow-lg shadow-cyan-500/30 flex items-center gap-2";
             } else {
-                btn.className = "tab-btn px-4 py-2.5 font-semibold text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition flex items-center gap-2";
+                btn.className = "tab-btn px-4 py-2.5 font-semibold text-sm text-gray-400 hover:text-white hover:bg-slate-800 rounded-xl transition flex items-center gap-2";
             }
         }
     });
@@ -567,8 +567,8 @@ function switchTab(tabId) {
 // 11. Toast de Notificación Admin
 function showAdminToast(msg) {
     const toast = document.createElement("div");
-    toast.className = "fixed bottom-6 right-6 z-50 bg-gray-900 border border-purple-500/60 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-sm animate-bounce";
-    toast.innerHTML = `<i class="fas fa-check-circle text-purple-400"></i> <span>${msg}</span>`;
+    toast.className = "fixed bottom-6 right-6 z-50 bg-slate-900 border border-cyan-500/60 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 text-sm";
+    toast.innerHTML = `<i class="fas fa-check-circle text-cyan-400"></i> <span>${msg}</span>`;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2800);
 }

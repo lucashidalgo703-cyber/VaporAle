@@ -64,7 +64,7 @@ function verifyAge(isAdult) {
     }
 }
 
-// 2. Renderizado de Categorías
+// 2. Renderizado de Categorías con paleta Cyan Eléctrico
 function renderCategories() {
     const container = document.getElementById("categories-container");
     if (!container) return;
@@ -74,13 +74,13 @@ function renderCategories() {
     container.innerHTML = categories.map(cat => `
         <button 
             onclick="setCategory('${cat.id}')"
-            class="category-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${
+            class="category-btn px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
                 activeCategory === cat.id 
-                    ? "bg-purple-600 text-white shadow-lg shadow-purple-600/30" 
-                    : "bg-gray-800/80 text-gray-400 hover:text-white hover:bg-gray-700/80 border border-gray-700/50"
+                    ? "bg-gradient-to-r from-cyan-400 to-blue-600 text-white shadow-lg shadow-cyan-500/30 scale-105" 
+                    : "bg-slate-900/80 text-gray-300 hover:text-white hover:bg-slate-800/80 border border-cyan-500/20 hover:border-cyan-500/50"
             }"
             id="cat-btn-${cat.id}">
-            <i class="fas ${cat.icon || 'fa-tag'} text-xs"></i>
+            <i class="fas ${cat.icon || 'fa-tag'} text-xs ${activeCategory === cat.id ? 'text-white' : 'text-cyan-400'}"></i>
             <span>${cat.name}</span>
         </button>
     `).join("");
@@ -101,7 +101,6 @@ function renderProducts() {
     const products = getActiveProducts();
     const config = getActiveConfig();
 
-    // Filtro por categoría y búsqueda
     const filtered = products.filter(prod => {
         const matchesCategory = activeCategory === "all" || prod.category === activeCategory;
         const matchesSearch = prod.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -117,10 +116,10 @@ function renderProducts() {
     if (filtered.length === 0) {
         grid.innerHTML = `
             <div class="col-span-full py-16 text-center text-gray-500">
-                <i class="fas fa-search text-5xl mb-4 text-gray-600"></i>
+                <i class="fas fa-smoking text-5xl mb-4 text-cyan-500/40 animate-pulse block"></i>
                 <h3 class="text-xl font-bold text-gray-300">No encontramos ningún producto</h3>
                 <p class="text-sm mt-1">Prueba con otra palabra clave o cambia de categoría.</p>
-                <button onclick="clearFilters()" class="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-semibold">
+                <button onclick="clearFilters()" class="mt-4 px-5 py-2.5 glow-btn text-white rounded-xl text-xs font-bold">
                     Ver todos los productos
                 </button>
             </div>
@@ -129,23 +128,23 @@ function renderProducts() {
     }
 
     grid.innerHTML = filtered.map(prod => `
-        <div class="glow-card bg-gray-900/90 rounded-2xl overflow-hidden flex flex-col justify-between group">
-            <div class="relative overflow-hidden cursor-pointer" onclick="openProductModal('${prod.id}')">
+        <div class="glow-card rounded-2xl overflow-hidden flex flex-col justify-between group">
+            <div class="relative overflow-hidden cursor-pointer bg-slate-950" onclick="openProductModal('${prod.id}')">
                 <img 
                     src="${prod.image || 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=600&q=80'}" 
                     alt="${prod.name}" 
-                    class="w-full h-52 object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                    class="w-full h-56 object-cover object-center group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                     onerror="this.src='https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=600&q=80'">
                 
                 ${prod.badge ? `
-                    <span class="absolute top-3 left-3 bg-purple-600/90 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                    <span class="absolute top-3 left-3 badge-cyan text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg">
                         ${prod.badge}
                     </span>
                 ` : ""}
 
                 ${prod.brand ? `
-                    <span class="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-gray-300 text-xs px-2.5 py-1 rounded-lg">
+                    <span class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md text-cyan-300 text-xs px-2.5 py-1 rounded-lg border border-cyan-500/20 font-semibold">
                         ${prod.brand}
                     </span>
                 ` : ""}
@@ -153,29 +152,29 @@ function renderProducts() {
 
             <div class="p-5 flex-1 flex flex-col justify-between">
                 <div>
-                    <h3 class="text-base font-bold text-white group-hover:text-purple-400 transition-colors line-clamp-1 cursor-pointer" onclick="openProductModal('${prod.id}')">
+                    <h3 class="text-base font-extrabold text-white group-hover:text-cyan-400 transition-colors line-clamp-1 cursor-pointer" onclick="openProductModal('${prod.id}')">
                         ${prod.name}
                     </h3>
                     ${prod.specs ? `
-                        <p class="text-xs text-purple-400 font-medium mt-1 flex items-center gap-1.5">
-                            <i class="fas fa-check-circle text-[10px]"></i> ${prod.specs}
+                        <p class="text-xs text-cyan-400/90 font-medium mt-1 flex items-center gap-1.5">
+                            <i class="fas fa-check-circle text-[10px] text-cyan-400"></i> ${prod.specs}
                         </p>
                     ` : ""}
-                    <p class="text-xs text-gray-400 mt-2 line-clamp-2">
+                    <p class="text-xs text-gray-400 mt-2 line-clamp-2 leading-relaxed">
                         ${prod.description || ""}
                     </p>
                 </div>
 
-                <div class="mt-5 pt-4 border-t border-gray-800/80 flex items-center justify-between">
+                <div class="mt-5 pt-4 border-t border-cyan-500/10 flex items-center justify-between">
                     <div>
-                        <span class="text-[11px] text-gray-400 uppercase font-semibold">Precio</span>
-                        <div class="text-lg font-black text-white">
+                        <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Precio</span>
+                        <div class="text-xl font-black text-white">
                             ${config.currency}${Number(prod.price).toLocaleString()}
                         </div>
                     </div>
                     <button 
                         onclick="addToCart('${prod.id}')"
-                        class="glow-btn bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 active:scale-95 transition-all">
+                        class="glow-btn text-white px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 active:scale-95 transition-all">
                         <i class="fas fa-cart-plus"></i>
                         <span>Agregar</span>
                     </button>
@@ -288,21 +287,21 @@ function updateCartUI() {
     if (footerActions) footerActions.classList.remove("hidden");
 
     drawerItems.innerHTML = cart.map(item => `
-        <div class="flex items-center gap-3 bg-gray-800/40 border border-gray-700/50 p-3 rounded-xl">
-            <img src="${item.image}" alt="${item.name}" class="w-14 h-14 object-cover rounded-lg" onerror="this.src='https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=600&q=80'">
+        <div class="flex items-center gap-3 bg-slate-900/60 border border-cyan-500/15 p-3 rounded-2xl">
+            <img src="${item.image}" alt="${item.name}" class="w-14 h-14 object-cover rounded-xl border border-cyan-500/20" onerror="this.src='https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=600&q=80'">
             <div class="flex-1 min-w-0">
                 <h4 class="text-sm font-bold text-white truncate">${item.name}</h4>
-                <p class="text-xs text-purple-400">${item.specs}</p>
+                <p class="text-xs text-cyan-400">${item.specs}</p>
                 <span class="text-xs font-semibold text-gray-300">
                     ${config.currency}${item.price.toLocaleString()} c/u
                 </span>
             </div>
-            <div class="flex items-center gap-2 bg-gray-900 p-1 rounded-lg border border-gray-700">
-                <button onclick="updateQuantity('${item.id}', -1)" class="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-white">
+            <div class="flex items-center gap-2 bg-slate-950 p-1 rounded-xl border border-cyan-500/20">
+                <button onclick="updateQuantity('${item.id}', -1)" class="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-cyan-400">
                     <i class="fas fa-minus text-[10px]"></i>
                 </button>
                 <span class="text-xs font-bold text-white w-4 text-center">${item.quantity}</span>
-                <button onclick="updateQuantity('${item.id}', 1)" class="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-white">
+                <button onclick="updateQuantity('${item.id}', 1)" class="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-cyan-400">
                     <i class="fas fa-plus text-[10px]"></i>
                 </button>
             </div>
@@ -370,7 +369,7 @@ function checkoutWhatsApp() {
     message += `\n--------------------------------------\n`;
     message += `💰 *TOTAL A PAGAR: ${config.currency}${total.toLocaleString()}*\n`;
     message += `--------------------------------------\n`;
-    message += `_Hola! Quiero confirmar este pedido y coordinar la entrega. Muchas gracias._`;
+    message += `_Hola! Quiero confirmar este pedido y coordinar la entrega con VaporAle. Muchas gracias._`;
 
     const encoded = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${config.whatsappNumber}?text=${encoded}`;
@@ -391,20 +390,20 @@ function openProductModal(productId) {
 
     container.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-            <div class="rounded-xl overflow-hidden bg-gray-800">
+            <div class="rounded-2xl overflow-hidden bg-slate-950 border border-cyan-500/20">
                 <img src="${product.image || 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=600&q=80'}" alt="${product.name}" class="w-full h-80 object-cover" onerror="this.src='https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=600&q=80'">
             </div>
             <div>
-                <span class="text-xs uppercase tracking-wider font-semibold text-purple-400">${product.brand || 'VaporAle'} • ${product.category}</span>
+                <span class="text-xs uppercase tracking-wider font-bold text-cyan-400">${product.brand || 'VaporAle'} • ${product.category}</span>
                 <h2 class="text-2xl font-black text-white mt-1">${product.name}</h2>
                 ${product.specs ? `
-                    <div class="inline-block bg-purple-900/40 text-purple-300 text-xs px-3 py-1 rounded-full font-medium mt-2">
+                    <div class="inline-block bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 text-xs px-3 py-1 rounded-full font-semibold mt-2">
                         ${product.specs}
                     </div>
                 ` : ""}
                 <p class="text-sm text-gray-300 mt-4 leading-relaxed">${product.description || ""}</p>
                 <div class="mt-6">
-                    <span class="text-xs text-gray-400 font-semibold uppercase">Precio</span>
+                    <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Precio</span>
                     <div class="text-3xl font-black text-white">
                         ${config.currency}${Number(product.price).toLocaleString()}
                     </div>
@@ -412,12 +411,12 @@ function openProductModal(productId) {
                 <div class="mt-6 flex gap-3">
                     <button 
                         onclick="addToCart('${product.id}'); closeProductModal();"
-                        class="flex-1 glow-btn bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                        class="flex-1 glow-btn text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2">
                         <i class="fas fa-cart-plus"></i> Agregar al carrito
                     </button>
                     <button 
                         onclick="closeProductModal()"
-                        class="px-4 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl font-bold">
+                        class="px-5 py-3.5 bg-slate-800 hover:bg-slate-700 text-gray-300 rounded-xl font-bold text-sm">
                         Cerrar
                     </button>
                 </div>
@@ -441,9 +440,9 @@ function showToast(message) {
     if (!container) return;
 
     const toast = document.createElement("div");
-    toast.className = "toast-enter bg-gray-900 border border-purple-500/50 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 pointer-events-auto text-sm";
+    toast.className = "toast-enter bg-slate-900 border border-cyan-500/50 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 pointer-events-auto text-sm";
     toast.innerHTML = `
-        <i class="fas fa-check-circle text-purple-400 text-base"></i>
+        <i class="fas fa-check-circle text-cyan-400 text-base"></i>
         <span class="font-medium">${message}</span>
     `;
 
