@@ -1,3 +1,31 @@
+// Helper functions para obtener datos activos (localStorage o products.js por defecto)
+function getActiveConfig() {
+    try {
+        const stored = localStorage.getItem("vaporale_config");
+        return stored ? JSON.parse(stored) : STORE_CONFIG;
+    } catch(e) {
+        return STORE_CONFIG;
+    }
+}
+
+function getActiveCategories() {
+    try {
+        const stored = localStorage.getItem("vaporale_categories");
+        return stored ? JSON.parse(stored) : CATEGORIES;
+    } catch(e) {
+        return CATEGORIES;
+    }
+}
+
+function getActiveProducts() {
+    try {
+        const stored = localStorage.getItem("vaporale_products");
+        return stored ? JSON.parse(stored) : PRODUCTS;
+    } catch(e) {
+        return PRODUCTS;
+    }
+}
+
 // Estado de la aplicación
 let activeCategory = "all";
 let searchQuery = "";
@@ -25,12 +53,13 @@ function checkAgeVerification() {
 
 function verifyAge(isAdult) {
     const modal = document.getElementById("age-verification-modal");
+    const config = getActiveConfig();
     if (isAdult) {
         localStorage.setItem("vape_age_verified", "true");
         if (modal) modal.classList.add("hidden");
         document.body.style.overflow = "auto";
     } else {
-        alert("Lo sentimos. Este sitio es exclusivo para mayores de " + STORE_CONFIG.minAge + " años.");
+        alert("Lo sentimos. Este sitio es exclusivo para mayores de " + (config.minAge || 18) + " años.");
         window.location.href = "https://www.google.com";
     }
 }
@@ -40,7 +69,9 @@ function renderCategories() {
     const container = document.getElementById("categories-container");
     if (!container) return;
 
-    container.innerHTML = CATEGORIES.map(cat => `
+    const categories = getActiveCategories();
+
+    container.innerHTML = categories.map(cat => `
         <button 
             onclick="setCategory('${cat.id}')"
             class="category-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${
@@ -49,7 +80,7 @@ function renderCategories() {
                     : "bg-gray-800/80 text-gray-400 hover:text-white hover:bg-gray-700/80 border border-gray-700/50"
             }"
             id="cat-btn-${cat.id}">
-            <i class="fas ${cat.icon} text-xs"></i>
+            <i class="fas ${cat.icon || 'fa-tag'} text-xs"></i>
             <span>${cat.name}</span>
         </button>
     `).join("");
@@ -67,12 +98,15 @@ function renderProducts() {
     const countLabel = document.getElementById("results-count");
     if (!grid) return;
 
+    const products = getActiveProducts();
+    const config = getActiveConfig();
+
     // Filtro por categoría y búsqueda
-    const filtered = PRODUCTS.filter(prod => {
+    const filtered = products.filter(prod => {
         const matchesCategory = activeCategory === "all" || prod.category === activeCategory;
         const matchesSearch = prod.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                              prod.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                              prod.specs.toLowerCase().includes(searchQuery.toLowerCase());
+                              (prod.brand && prod.brand.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                              (prod.specs && prod.specs.toLowerCase().includes(searchQuery.toLowerCase()));
         return matchesCategory && matchesSearch;
     });
 
@@ -98,10 +132,11 @@ function renderProducts() {
         <div class="glow-card bg-gray-900/90 rounded-2xl overflow-hidden flex flex-col justify-between group">
             <div class="relative overflow-hidden cursor-pointer" onclick="openProductModal('${prod.id}')">
                 <img 
-                    src="${prod.image}" 
+                    src="${prod.image || 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=600&q=80'}" 
                     alt="${prod.name}" 
                     class="w-full h-52 object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy">
+                    loading="lazy"
+                    onerror="this.src='https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=600&q=80'">
                 
                 ${prod.badge ? `
                     <span class="absolute top-3 left-3 bg-purple-600/90 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
@@ -109,9 +144,11 @@ function renderProducts() {
                     </span>
                 ` : ""}
 
-                <span class="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-gray-300 text-xs px-2.5 py-1 rounded-lg">
-                    ${prod.brand}
-                </span>
+                ${prod.brand ? `
+                    <span class="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-gray-300 text-xs px-2.5 py-1 rounded-lg">
+                        ${prod.brand}
+                    </span>
+                ` : ""}
             </div>
 
             <div class="p-5 flex-1 flex flex-col justify-between">
@@ -119,11 +156,13 @@ function renderProducts() {
                     <h3 class="text-base font-bold text-white group-hover:text-purple-400 transition-colors line-clamp-1 cursor-pointer" onclick="openProductModal('${prod.id}')">
                         ${prod.name}
                     </h3>
-                    <p class="text-xs text-purple-400 font-medium mt-1 flex items-center gap-1.5">
-                        <i class="fas fa-check-circle text-[10px]"></i> ${prod.specs}
-                    </p>
+                    ${prod.specs ? `
+                        <p class="text-xs text-purple-400 font-medium mt-1 flex items-center gap-1.5">
+                            <i class="fas fa-check-circle text-[10px]"></i> ${prod.specs}
+                        </p>
+                    ` : ""}
                     <p class="text-xs text-gray-400 mt-2 line-clamp-2">
-                        ${prod.description}
+                        ${prod.description || ""}
                     </p>
                 </div>
 
@@ -131,7 +170,7 @@ function renderProducts() {
                     <div>
                         <span class="text-[11px] text-gray-400 uppercase font-semibold">Precio</span>
                         <div class="text-lg font-black text-white">
-                            ${STORE_CONFIG.currency}${prod.price.toLocaleString()}
+                            ${config.currency}${Number(prod.price).toLocaleString()}
                         </div>
                     </div>
                     <button 
@@ -157,7 +196,8 @@ function clearFilters() {
 
 // 4. Gestión del Carrito
 function addToCart(productId) {
-    const product = PRODUCTS.find(p => p.id === productId);
+    const products = getActiveProducts();
+    const product = products.find(p => p.id === productId);
     if (!product) return;
 
     const existingItem = cart.find(item => item.id === productId);
@@ -167,9 +207,9 @@ function addToCart(productId) {
         cart.push({
             id: product.id,
             name: product.name,
-            price: product.price,
+            price: Number(product.price),
             image: product.image,
-            specs: product.specs,
+            specs: product.specs || "",
             quantity: 1
         });
     }
@@ -225,8 +265,8 @@ function updateCartUI() {
     const totalAmount = document.getElementById("cart-total-amount");
     const emptyState = document.getElementById("cart-empty-state");
     const footerActions = document.getElementById("cart-footer");
+    const config = getActiveConfig();
 
-    // Cantidad total de productos
     const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
     const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
@@ -249,12 +289,12 @@ function updateCartUI() {
 
     drawerItems.innerHTML = cart.map(item => `
         <div class="flex items-center gap-3 bg-gray-800/40 border border-gray-700/50 p-3 rounded-xl">
-            <img src="${item.image}" alt="${item.name}" class="w-14 h-14 object-cover rounded-lg">
+            <img src="${item.image}" alt="${item.name}" class="w-14 h-14 object-cover rounded-lg" onerror="this.src='https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=600&q=80'">
             <div class="flex-1 min-w-0">
                 <h4 class="text-sm font-bold text-white truncate">${item.name}</h4>
                 <p class="text-xs text-purple-400">${item.specs}</p>
                 <span class="text-xs font-semibold text-gray-300">
-                    ${STORE_CONFIG.currency}${item.price.toLocaleString()} c/u
+                    ${config.currency}${item.price.toLocaleString()} c/u
                 </span>
             </div>
             <div class="flex items-center gap-2 bg-gray-900 p-1 rounded-lg border border-gray-700">
@@ -273,7 +313,7 @@ function updateCartUI() {
     `).join("");
 
     if (totalAmount) {
-        totalAmount.textContent = `${STORE_CONFIG.currency}${totalPrice.toLocaleString()}`;
+        totalAmount.textContent = `${config.currency}${totalPrice.toLocaleString()}`;
     }
 }
 
@@ -302,6 +342,7 @@ function checkoutWhatsApp() {
         return;
     }
 
+    const config = getActiveConfig();
     const customerName = document.getElementById("checkout-name")?.value.trim() || "Cliente";
     const customerAddress = document.getElementById("checkout-address")?.value.trim() || "A coordinar";
     const paymentMethod = document.getElementById("checkout-payment")?.value || "Efectivo / Transferencia";
@@ -309,8 +350,7 @@ function checkoutWhatsApp() {
 
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-    // Formatear mensaje para WhatsApp
-    let message = `*🛒 NUEVO PEDIDO - ${STORE_CONFIG.storeName.toUpperCase()}*\n`;
+    let message = `*🛒 NUEVO PEDIDO - ${(config.storeName || 'VAPORALE').toUpperCase()}*\n`;
     message += `--------------------------------------\n`;
     message += `👤 *Cliente:* ${customerName}\n`;
     message += `📍 *Dirección/Envío:* ${customerAddress}\n`;
@@ -324,24 +364,25 @@ function checkoutWhatsApp() {
     cart.forEach(item => {
         const subtotal = item.price * item.quantity;
         message += `• *${item.quantity}x* ${item.name}\n`;
-        message += `   _(${STORE_CONFIG.currency}${item.price.toLocaleString()} c/u) = ${STORE_CONFIG.currency}${subtotal.toLocaleString()}_\n`;
+        message += `   _(${config.currency}${item.price.toLocaleString()} c/u) = ${config.currency}${subtotal.toLocaleString()}_\n`;
     });
 
     message += `\n--------------------------------------\n`;
-    message += `💰 *TOTAL A PAGAR: ${STORE_CONFIG.currency}${total.toLocaleString()}*\n`;
+    message += `💰 *TOTAL A PAGAR: ${config.currency}${total.toLocaleString()}*\n`;
     message += `--------------------------------------\n`;
     message += `_Hola! Quiero confirmar este pedido y coordinar la entrega. Muchas gracias._`;
 
     const encoded = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${STORE_CONFIG.whatsappNumber}?text=${encoded}`;
+    const whatsappUrl = `https://wa.me/${config.whatsappNumber}?text=${encoded}`;
 
-    // Abrir WhatsApp en nueva pestaña
     window.open(whatsappUrl, "_blank");
 }
 
 // 7. Modal de Vista Rápida de Producto
 function openProductModal(productId) {
-    const product = PRODUCTS.find(p => p.id === productId);
+    const products = getActiveProducts();
+    const config = getActiveConfig();
+    const product = products.find(p => p.id === productId);
     if (!product) return;
 
     const modal = document.getElementById("product-detail-modal");
@@ -351,19 +392,21 @@ function openProductModal(productId) {
     container.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
             <div class="rounded-xl overflow-hidden bg-gray-800">
-                <img src="${product.image}" alt="${product.name}" class="w-full h-80 object-cover">
+                <img src="${product.image || 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=600&q=80'}" alt="${product.name}" class="w-full h-80 object-cover" onerror="this.src='https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=600&q=80'">
             </div>
             <div>
-                <span class="text-xs uppercase tracking-wider font-semibold text-purple-400">${product.brand} • ${product.category}</span>
+                <span class="text-xs uppercase tracking-wider font-semibold text-purple-400">${product.brand || 'VaporAle'} • ${product.category}</span>
                 <h2 class="text-2xl font-black text-white mt-1">${product.name}</h2>
-                <div class="inline-block bg-purple-900/40 text-purple-300 text-xs px-3 py-1 rounded-full font-medium mt-2">
-                    ${product.specs}
-                </div>
-                <p class="text-sm text-gray-300 mt-4 leading-relaxed">${product.description}</p>
+                ${product.specs ? `
+                    <div class="inline-block bg-purple-900/40 text-purple-300 text-xs px-3 py-1 rounded-full font-medium mt-2">
+                        ${product.specs}
+                    </div>
+                ` : ""}
+                <p class="text-sm text-gray-300 mt-4 leading-relaxed">${product.description || ""}</p>
                 <div class="mt-6">
                     <span class="text-xs text-gray-400 font-semibold uppercase">Precio</span>
                     <div class="text-3xl font-black text-white">
-                        ${STORE_CONFIG.currency}${product.price.toLocaleString()}
+                        ${config.currency}${Number(product.price).toLocaleString()}
                     </div>
                 </div>
                 <div class="mt-6 flex gap-3">
@@ -415,7 +458,6 @@ function showToast(message) {
 
 // 9. Event Listeners
 function setupEventListeners() {
-    // Buscador
     const searchInput = document.getElementById("search-input");
     if (searchInput) {
         searchInput.addEventListener("input", (e) => {
@@ -424,7 +466,6 @@ function setupEventListeners() {
         });
     }
 
-    // Cerrar modales con tecla Escape
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
             const drawer = document.getElementById("cart-drawer");

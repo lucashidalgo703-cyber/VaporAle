@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración — VaporAle</title>
+    <link rel="icon" type="image/png" href="logo-vaporale.png">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            950: '#070a12',
+                            900: '#0b0f19',
+                            800: '#111827',
+                            700: '#1f2937'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Font Awesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-[#070a12] text-gray-100 min-h-screen flex flex-col font-sans">
+
+    <!-- 1. PANTALLA DE ACCESO / LOGIN PIN -->
+    <div id="admin-login-screen" class="fixed inset-0 z-50 bg-[#070a12] flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-gray-900 border border-purple-500/30 rounded-3xl p-8 shadow-2xl text-center relative overflow-hidden">
+            <div class="smoke-glow top-[-100px] left-[-100px]"></div>
+            
+            <img src="logo-vaporale.png" alt="VaporAle Logo" class="h-16 w-auto mx-auto mb-4 object-contain" onerror="this.style.display='none'">
+            <h2 class="text-2xl font-black text-white">Panel de Administración</h2>
+            <p class="text-xs text-gray-400 mt-1">Ingresa el PIN de seguridad para gestionar tu tienda</p>
+
+            <form onsubmit="handleLogin(event)" class="mt-6 space-y-4">
+                <div>
+                    <input 
+                        type="password" 
+                        id="admin-pin-input" 
+                        placeholder="PIN de acceso (Por defecto: 1234)" 
+                        maxlength="10"
+                        class="w-full text-center text-xl tracking-widest bg-gray-800 border border-gray-700 rounded-2xl py-3.5 px-4 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+                </div>
+                <p id="login-error-msg" class="text-xs font-semibold text-red-400 hidden"></p>
+                <button 
+                    type="submit" 
+                    class="w-full glow-btn bg-purple-600 hover:bg-purple-500 text-white font-bold py-3.5 rounded-2xl text-sm transition">
+                    Ingresar al Panel
+                </button>
+            </form>
+            <div class="mt-6 border-t border-gray-800 pt-4">
+                <a href="index.html" class="text-xs text-gray-400 hover:text-white transition flex items-center justify-center gap-1.5">
+                    <i class="fas fa-arrow-left"></i> Volver a la tienda pública
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. DASHBOARD ADMINISTRADOR -->
+    <div id="admin-dashboard" class="flex-1 flex flex-col hidden">
+        
+        <!-- Header Barra Superior -->
+        <header class="bg-gray-900/90 backdrop-blur-md border-b border-gray-800 sticky top-0 z-30">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+                
+                <div class="flex items-center gap-4">
+                    <img src="logo-vaporale.png" alt="VaporAle" class="h-10 w-auto object-contain" onerror="this.style.display='none'">
+                    <div>
+                        <span class="text-lg font-black text-white flex items-center gap-2">
+                            VAPOR<span class="text-purple-500">ALE</span>
+                            <span class="bg-purple-900/60 text-purple-300 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider border border-purple-500/30">
+                                Panel Admin
+                            </span>
+                        </span>
+                        <span class="block text-[11px] text-gray-400">Gestor de productos, stock y configuración</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <a href="index.html" target="_blank" class="bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition">
+                        <i class="fas fa-external-link-alt text-purple-400"></i>
+                        <span class="hidden sm:inline">Ver Tienda Pública</span>
+                    </a>
+                    <button onclick="handleLogout()" class="bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/60 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="hidden sm:inline">Salir</span>
+                    </button>
+                </div>
+
+            </div>
+        </header>
+
+        <!-- Métricas Rápidas -->
+        <section class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-gray-900 border border-gray-800/80 rounded-2xl p-5">
+                    <div class="flex items-center justify-between text-gray-400 text-xs font-bold uppercase">
+                        <span>Productos Totales</span>
+                        <i class="fas fa-box text-purple-400"></i>
+                    </div>
+                    <div id="metric-total-products" class="text-2xl font-black text-white mt-2">0</div>
+                </div>
+                <div class="bg-gray-900 border border-gray-800/80 rounded-2xl p-5">
+                    <div class="flex items-center justify-between text-gray-400 text-xs font-bold uppercase">
+                        <span>Categorías</span>
+                        <i class="fas fa-tags text-cyan-400"></i>
+                    </div>
+                    <div id="metric-total-categories" class="text-2xl font-black text-white mt-2">0</div>
+                </div>
+                <div class="bg-gray-900 border border-gray-800/80 rounded-2xl p-5">
+                    <div class="flex items-center justify-between text-gray-400 text-xs font-bold uppercase">
+                        <span>Sin Stock</span>
+                        <i class="fas fa-exclamation-circle text-red-400"></i>
+                    </div>
+                    <div id="metric-out-stock" class="text-2xl font-black text-white mt-2">0</div>
+                </div>
+                <div class="bg-gray-900 border border-gray-800/80 rounded-2xl p-5">
+                    <div class="flex items-center justify-between text-gray-400 text-xs font-bold uppercase">
+                        <span>WhatsApp Destino</span>
+                        <i class="fab fa-whatsapp text-green-400"></i>
+                    </div>
+                    <div id="metric-whatsapp" class="text-xs font-mono font-bold text-green-400 mt-3 truncate">-</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navegación por Pestañas -->
+        <section class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+            <div class="flex items-center gap-2 border-b border-gray-800 pb-4 overflow-x-auto no-scrollbar">
+                <button 
+                    id="tab-btn-products" 
+                    onclick="switchTab('products')" 
+                    class="tab-btn active px-4 py-2.5 font-bold text-sm text-white bg-purple-600 rounded-xl shadow-lg shadow-purple-600/30 flex items-center gap-2">
+                    <i class="fas fa-boxes"></i> Productos
+                </button>
+                <button 
+                    id="tab-btn-categories" 
+                    onclick="switchTab('categories')" 
+                    class="tab-btn px-4 py-2.5 font-semibold text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition flex items-center gap-2">
+                    <i class="fas fa-filter"></i> Categorías & Filtros
+                </button>
+                <button 
+                    id="tab-btn-settings" 
+                    onclick="switchTab('settings')" 
+                    class="tab-btn px-4 py-2.5 font-semibold text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition flex items-center gap-2">
+                    <i class="fas fa-cog"></i> Configuración Tienda
+                </button>
+                <button 
+                    id="tab-btn-export" 
+                    onclick="switchTab('export')" 
+                    class="tab-btn px-4 py-2.5 font-semibold text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition flex items-center gap-2">
+                    <i class="fas fa-cloud-download-alt"></i> Exportar & Respaldos
+                </button>
+            </div>
+        </section>
+
+        <!-- CONTENIDO DE PESTAÑAS -->
+        <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
+            
+            <!-- PESTAÑA 1: PRODUCTOS -->
+            <div id="tab-pane-products" class="space-y-6">
+                <!-- Barra de Búsqueda y Botón Nuevo -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-between items-center bg-gray-900 border border-gray-800 p-4 rounded-2xl">
+                    <div class="flex flex-1 gap-3 w-full sm:w-auto">
+                        <div class="relative flex-1 max-w-sm">
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+                            <input 
+                                type="text" 
+                                id="search-admin-products" 
+                                placeholder="Buscar por nombre, marca o specs..." 
+                                class="w-full bg-gray-800 border border-gray-700 rounded-xl pl-10 pr-4 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
+                        </div>
+                        <select 
+                            id="filter-by-category" 
+                            class="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-purple-500">
+                            <!-- Opciones cargadas por JS -->
+                        </select>
+                    </div>
+                    <button 
+                        onclick="openCreateProductModal()" 
+                        class="w-full sm:w-auto glow-btn bg-purple-600 hover:bg-purple-500 text-white font-bold px-5 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2">
+                        <i class="fas fa-plus"></i> Nuevo Producto
+                    </button>
+                </div>
+
+                <!-- Tabla de Productos -->
+                <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-gray-950/60 border-b border-gray-800 text-gray-400 text-xs uppercase font-bold">
+                                <tr>
+                                    <th class="px-6 py-4">Producto</th>
+                                    <th class="px-6 py-4">Categoría</th>
+                                    <th class="px-6 py-4">Especificaciones</th>
+                                    <th class="px-6 py-4">Precio</th>
+                                    <th class="px-6 py-4">Estado</th>
+                                    <th class="px-6 py-4 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-table-body" class="divide-y divide-gray-800/60">
+                                <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PESTAÑA 2: CATEGORÍAS & FILTROS -->
+            <div id="tab-pane-categories" class="hidden space-y-6">
+                <div class="flex items-center justify-between bg-gray-900 border border-gray-800 p-4 rounded-2xl">
+                    <div>
+                        <h3 class="text-base font-bold text-white">Categorías y Filtros del Catálogo</h3>
+                        <p class="text-xs text-gray-400">Define las etiquetas de navegación que ven tus clientes en la tienda.</p>
+                    </div>
+                    <button 
+                        onclick="openCreateCategoryModal()" 
+                        class="glow-btn bg-purple-600 hover:bg-purple-500 text-white font-bold px-5 py-2.5 rounded-xl text-xs flex items-center gap-2">
+                        <i class="fas fa-plus"></i> Nueva Categoría
+                    </button>
+                </div>
+
+                <div id="categories-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Dinámico -->
+                </div>
+            </div>
+
+            <!-- PESTAÑA 3: CONFIGURACIÓN TIENDA -->
+            <div id="tab-pane-settings" class="hidden max-w-2xl mx-auto">
+                <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+                    <h3 class="text-lg font-bold text-white mb-2">Ajustes Generales de la Tienda</h3>
+                    <p class="text-xs text-gray-400 mb-6">Configura los datos de contacto y recepción de pedidos por WhatsApp.</p>
+
+                    <form onsubmit="saveConfigFromForm(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Nombre de la Tienda</label>
+                                <input type="text" id="cfg-store-name" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Símbolo de Moneda</label>
+                                <input type="text" id="cfg-currency" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Número de WhatsApp (Sin '+')</label>
+                            <input type="text" id="cfg-whatsapp" placeholder="Ej: 5491123456789" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+                            <span class="text-[11px] text-gray-500">Número completo con código de país donde llegarán los carritos.</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Usuario de Instagram</label>
+                                <input type="text" id="cfg-instagram" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Edad Mínima Legal</label>
+                                <input type="number" id="cfg-min-age" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Información de Envíos</label>
+                            <input type="text" id="cfg-delivery" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                        </div>
+
+                        <div class="pt-4 border-t border-gray-800">
+                            <label class="block text-xs font-bold text-purple-400 uppercase mb-1">PIN de Acceso al Panel Admin</label>
+                            <input type="text" id="cfg-admin-pin" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+                            <span class="text-[11px] text-gray-500">PIN para ingresar a este panel (predeterminado: 1234).</span>
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            class="w-full glow-btn bg-purple-600 hover:bg-purple-500 text-white font-bold py-3.5 rounded-xl text-xs transition">
+                            Guardar Configuración
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- PESTAÑA 4: EXPORTAR & RESPALDOS -->
+            <div id="tab-pane-export" class="hidden max-w-3xl mx-auto space-y-6">
+                <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center text-lg">
+                            <i class="fas fa-file-code"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Sincronizar y Exportar a GitHub</h3>
+                            <p class="text-xs text-gray-400">Descarga tu catálogo listo para actualizar el repositorio.</p>
+                        </div>
+                    </div>
+                    
+                    <p class="text-xs text-gray-300 leading-relaxed bg-gray-950 p-4 rounded-xl border border-gray-800">
+                        ℹ️ <strong>¿Cómo funciona?</strong> Todos los cambios que hagas aquí se guardan de inmediato en la memoria de este navegador. Cuando quieras que todos los clientes en internet vean los nuevos productos en GitHub / Vercel, haz clic en el botón de abajo y reemplaza el archivo <code class="text-purple-400">js/products.js</code>.
+                    </p>
+
+                    <div class="mt-6">
+                        <button 
+                            onclick="exportProductsJs()" 
+                            class="w-full glow-btn bg-purple-600 hover:bg-purple-500 text-white font-bold py-3.5 rounded-xl text-xs flex items-center justify-center gap-2.5 transition">
+                            <i class="fas fa-download"></i>
+                            <span>Descargar archivo "products.js" actualizado</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900 border border-red-950/80 rounded-2xl p-6">
+                    <h4 class="text-sm font-bold text-red-400 mb-1">Zona de Peligro</h4>
+                    <p class="text-xs text-gray-400 mb-4">Restaura el catálogo a los datos originales de fábrica.</p>
+                    <button 
+                        onclick="resetToFactoryDefaults()" 
+                        class="bg-red-950/60 hover:bg-red-900/80 border border-red-800/60 text-red-300 px-4 py-2.5 rounded-xl text-xs font-bold transition">
+                        Restablecer a Valores por Defecto
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- 3. MODAL DE PRODUCTO (CREAR / EDITAR) -->
+    <div id="product-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-900 border border-gray-800 rounded-3xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative">
+            <button onclick="closeProductModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white p-2">
+                <i class="fas fa-times text-base"></i>
+            </button>
+
+            <h3 id="product-modal-title" class="text-xl font-bold text-white mb-6">Nuevo Producto</h3>
+
+            <form onsubmit="saveProductFromForm(event)" class="space-y-4">
+                <input type="hidden" id="prod-form-id">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Nombre del Producto *</label>
+                        <input type="text" id="prod-form-name" required placeholder="Ej. Elf Bar BC5000" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Categoría *</label>
+                        <select id="prod-form-category" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                            <!-- Dinámico -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Marca</label>
+                        <input type="text" id="prod-form-brand" placeholder="Ej. Vaporesso" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Precio *</label>
+                        <input type="number" id="prod-form-price" required min="0" placeholder="18500" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Etiqueta (Badge)</label>
+                        <input type="text" id="prod-form-badge" placeholder="Ej. Top Ventas" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Especificaciones Rápidas</label>
+                    <input type="text" id="prod-form-specs" placeholder="Ej. 5000 Puffs • 5% Nicotina" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                </div>
+
+                <!-- URL Imagen con Preview -->
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-center">
+                    <div class="sm:col-span-3">
+                        <label class="block text-xs font-bold text-gray-300 uppercase mb-1">URL de la Imagen</label>
+                        <input 
+                            type="url" 
+                            id="prod-form-image" 
+                            oninput="updateImagePreview()" 
+                            placeholder="https://images.unsplash.com/..." 
+                            class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                    </div>
+                    <div class="sm:col-span-1 flex justify-center">
+                        <img id="prod-image-preview" src="" alt="Preview" class="w-16 h-16 object-cover rounded-xl bg-gray-800 border border-gray-700">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Descripción Detallada</label>
+                    <textarea id="prod-form-description" rows="3" placeholder="Detalles de sabor, capacidad de batería, etc..." class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500"></textarea>
+                </div>
+
+                <div class="flex items-center gap-2 pt-2">
+                    <input type="checkbox" id="prod-form-instock" class="w-4 h-4 rounded text-purple-600 bg-gray-800 border-gray-700">
+                    <label for="prod-form-instock" class="text-xs font-bold text-gray-300">Producto en Stock (Disponible para compra)</label>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-800">
+                    <button type="button" onclick="closeProductModal()" class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-bold">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="glow-btn px-6 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold">
+                        Guardar Producto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. MODAL DE CATEGORÍA -->
+    <div id="category-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-900 border border-gray-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative">
+            <button onclick="closeCategoryModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white p-2">
+                <i class="fas fa-times text-base"></i>
+            </button>
+
+            <h3 id="category-modal-title" class="text-xl font-bold text-white mb-6">Nueva Categoría</h3>
+
+            <form onsubmit="saveCategoryFromForm(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 uppercase mb-1">ID Único (slug) *</label>
+                    <input type="text" id="cat-form-id" required placeholder="ej. pods-recargables" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Nombre Visible *</label>
+                    <input type="text" id="cat-form-name" required placeholder="ej. Pods Recargables" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Ícono FontAwesome</label>
+                    <input type="text" id="cat-form-icon" placeholder="fa-fire, fa-bolt, fa-tint..." class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-800">
+                    <button type="button" onclick="closeCategoryModal()" class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-bold">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="glow-btn px-6 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold">
+                        Guardar Categoría
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/products.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

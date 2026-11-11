@@ -5,7 +5,8 @@ const STORE_CONFIG = {
     currency: "$",
     instagramUser: "@vaporale.oficial",
     minAge: 18,
-    deliveryInfo: "Envíos a todo el país / Entregas en el día"
+    deliveryInfo: "Envíos a todo el país / Entregas en el día",
+    adminPin: "1234" // PIN por defecto para acceder al panel de administración
 };
 
 // Categorías disponibles
